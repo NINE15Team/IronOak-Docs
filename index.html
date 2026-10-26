@@ -266,7 +266,53 @@ td code { white-space: nowrap; }
   .pager { flex-direction: column; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+
+/* Password gate */
+.gate { display: none; }
+.locked .topbar, .locked .shell { display: none; }
+.locked .gate {
+  display: grid; place-items: center; min-height: 100vh;
+  padding-block: 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.gate form {
+  width: min(380px, 100%); display: grid; gap: 14px;
+  padding: 32px 28px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel);
+}
+.gate .brand-mark { font: 600 34px/1 var(--font-display); }
+.gate p { margin: 0; color: var(--muted); font-size: 14px; }
+.gate label { font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.gate input {
+  width: 100%; height: 44px; padding-inline: 12px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--paper); color: var(--ink); font: 15px var(--font-body);
+}
+.gate input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.gate button {
+  height: 44px; border: 0; border-radius: 8px; cursor: pointer;
+  background: var(--ink); color: var(--paper); font: 600 14px var(--font-body); letter-spacing: .04em;
+}
+.gate .err { color: var(--warn-line); font-size: 13px; min-height: 1.2em; }
+.lock-btn { flex: none; }
 </style>
+
+<script>
+  // Lock the page before anything renders unless this browser already unlocked it.
+  (() => {
+    let ok = false;
+    try { ok = localStorage.getItem('io-docs-unlocked') === '1' || sessionStorage.getItem('io-docs-unlocked') === '1'; } catch (_) {}
+    if (!ok) document.documentElement.classList.add('locked');
+  })();
+</script>
+
+<div class="gate" id="gate">
+  <form id="gate-form" novalidate>
+    <div class="brand-mark">Iron Oak</div>
+    <p>Theme documentation. Enter the password to continue.</p>
+    <label for="gate-password">Password</label>
+    <input id="gate-password" type="password" autocomplete="current-password" required>
+    <div class="err" id="gate-error" role="alert"></div>
+    <button type="submit">Unlock</button>
+  </form>
+</div>
 
 <header class="topbar">
   <button class="icon-btn menu-btn" id="menu-btn" aria-label="Open navigation" aria-expanded="false">
@@ -276,6 +322,9 @@ td code { white-space: nowrap; }
   <button class="search-btn" id="search-btn" aria-label="Search documentation">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
     <span class="label">Search docs</span><kbd>⌘K</kbd>
+  </button>
+  <button class="icon-btn lock-btn" id="lock-btn" aria-label="Lock documentation" title="Lock">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
   </button>
 </header>
 
@@ -1544,8 +1593,51 @@ signature-solids-collection, the-heritage-collection, the-buckaroo-collection</c
   results.addEventListener('click', (e) => { if (e.target.closest('a')) dialog.close(); });
   dialog.addEventListener('click', (e) => { if (e.target === dialog) dialog.close(); });
   document.addEventListener('keydown', (e) => {
+    if (root.classList.contains('locked')) return;
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openSearch(); }
     else if (e.key === '/' && !dialog.open && !/input|textarea/i.test(document.activeElement.tagName)) { e.preventDefault(); openSearch(); }
+  });
+
+  // Password gate. The unlock is remembered in this browser, so page switches and reloads don't ask again.
+  // To change the password, put the new value's hash in PASSWORD_HASH (run cyrb53('new password') in the console).
+  const PASSWORD_HASH = 6861369075167100;
+  const KEY = 'io-docs-unlocked';
+  function cyrb53(str) {
+    let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+    for (let i = 0; i < str.length; i++) {
+      const ch = str.charCodeAt(i);
+      h1 = Math.imul(h1 ^ ch, 2654435761);
+      h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
+    h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
+    h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+  }
+  window.cyrb53 = cyrb53;
+  const root = document.documentElement;
+  const gateForm = document.getElementById('gate-form');
+  const gateInput = document.getElementById('gate-password');
+  const gateError = document.getElementById('gate-error');
+  if (root.classList.contains('locked')) gateInput.focus();
+  gateForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (cyrb53(gateInput.value.trim()) !== PASSWORD_HASH) {
+      gateError.textContent = 'That password is not right. Try again.';
+      gateInput.select();
+      return;
+    }
+    try { localStorage.setItem(KEY, '1'); } catch (_) {}
+    try { sessionStorage.setItem(KEY, '1'); } catch (_) {}
+    gateInput.value = ''; gateError.textContent = '';
+    root.classList.remove('locked');
+    route(false);
+  });
+  document.getElementById('lock-btn').addEventListener('click', () => {
+    try { localStorage.removeItem(KEY); sessionStorage.removeItem(KEY); } catch (_) {}
+    root.classList.add('locked');
+    gateInput.focus();
   });
 
   route(false);
