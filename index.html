@@ -1,0 +1,1553 @@
+<title>Iron Oak Theme Docs</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: three-pane docs reader. Sticky top bar, left nav by area, centered article (~70ch), right "On this page" rail. */
+:root {
+  --paper: #faf8f4;
+  --panel: #f3efe7;
+  --ink: #241e17;
+  --muted: #6b6154;
+  --line: #e4ddd0;
+  --accent: #7b633b;
+  --accent-ink: #5e4b2b;
+  --accent-soft: #efe6d4;
+  --code-bg: #f1ece2;
+  --mark: #ecd9a8;
+  --note: #e8eef0;  --note-line: #5d7a86;
+  --tip: #e6eedf;   --tip-line: #4f6b3f;
+  --warn: #f5e6d6;  --warn-line: #9a5a2c;
+  --shadow: 0 18px 50px rgba(36, 30, 23, .18);
+
+  --font-display: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+  --font-body: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --top: 58px;
+  --nav-w: 270px;
+  --toc-w: 220px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #15120e; --panel: #1c1813; --ink: #ece4d3; --muted: #a89d8c; --line: #302920;
+    --accent: #c9ab78; --accent-ink: #dcc196; --accent-soft: #2a2318; --code-bg: #201b15; --mark: #5a4724;
+    --note: #1b2326; --note-line: #7fa1ad; --tip: #1c2418; --tip-line: #8fb27a; --warn: #2a1f16; --warn-line: #d08a55;
+    --shadow: 0 18px 50px rgba(0, 0, 0, .5);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #15120e; --panel: #1c1813; --ink: #ece4d3; --muted: #a89d8c; --line: #302920;
+  --accent: #c9ab78; --accent-ink: #dcc196; --accent-soft: #2a2318; --code-bg: #201b15; --mark: #5a4724;
+  --note: #1b2326; --note-line: #7fa1ad; --tip: #1c2418; --tip-line: #8fb27a; --warn: #2a1f16; --warn-line: #d08a55;
+  --shadow: 0 18px 50px rgba(0, 0, 0, .5);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-padding-top: calc(var(--top) + 24px); }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font: 15px/1.65 var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--paper); }
+a { color: var(--accent-ink); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+
+/* Top bar */
+.topbar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  height: var(--top); display: flex; align-items: center; gap: 16px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+.brand { display: flex; align-items: baseline; gap: 10px; text-decoration: none; color: var(--ink); white-space: nowrap; }
+.brand b { font: 600 22px/1 var(--font-display); letter-spacing: .02em; }
+.brand span { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.menu-btn { display: none; }
+.icon-btn {
+  display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--paper); color: var(--ink); cursor: pointer;
+}
+.search-btn {
+  margin-left: auto; display: flex; align-items: center; gap: 10px;
+  width: min(360px, 100%); height: 36px; padding-inline: 12px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--muted);
+  font: 14px var(--font-body); cursor: pointer; text-align: left;
+}
+.search-btn:hover { border-color: var(--accent); }
+.search-btn .label { flex: 1; }
+kbd {
+  font: 500 11px/1 var(--font-mono); padding: 3px 6px; border-radius: 4px;
+  border: 1px solid var(--line); background: var(--paper); color: var(--muted);
+}
+
+/* Shell */
+.shell {
+  display: grid; grid-template-columns: var(--nav-w) minmax(0, 1fr) var(--toc-w);
+  max-width: 1440px; margin: 0 auto;
+}
+.sidenav {
+  position: sticky; top: calc(var(--top) + env(safe-area-inset-top, 0px)); align-self: start;
+  height: calc(100vh - var(--top) - env(safe-area-inset-top, 0px)); overflow-y: auto;
+  padding: 24px 12px 40px max(16px, env(safe-area-inset-left, 0px));
+  border-right: 1px solid var(--line);
+}
+.nav-group { margin-bottom: 22px; }
+.nav-group h4 {
+  margin: 0 0 6px; padding-left: 10px;
+  font: 600 11px/1.4 var(--font-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted);
+}
+.nav-group a {
+  display: block; padding: 5px 10px; border-radius: 6px;
+  color: var(--ink); text-decoration: none; font-size: 14px; line-height: 1.4;
+}
+.nav-group a:hover { background: var(--panel); }
+.nav-group a[aria-current="page"] { background: var(--accent-soft); color: var(--accent-ink); font-weight: 600; }
+
+main { min-width: 0; padding: 40px clamp(16px, 4vw, 56px) 80px; }
+.doc { max-width: 720px; margin: 0 auto; }
+.doc[hidden] { display: none; }
+
+.crumbs { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin-bottom: 8px; }
+.doc h1 {
+  font: 600 clamp(34px, 4.4vw, 46px)/1.08 var(--font-display); letter-spacing: -.005em;
+  margin: 0 0 12px; text-wrap: balance;
+}
+.lede { font-size: 17px; color: var(--muted); margin: 0 0 28px; max-width: 62ch; }
+.doc h2 {
+  font: 600 22px/1.3 var(--font-body); letter-spacing: -.01em;
+  margin: 44px 0 10px; padding-top: 18px; border-top: 1px solid var(--line); text-wrap: balance;
+}
+.doc h3 { font: 600 16.5px/1.4 var(--font-body); margin: 28px 0 6px; }
+.doc h2, .doc h3 { position: relative; }
+.doc h2 .anchor, .doc h3 .anchor {
+  margin-left: 8px; opacity: 0; color: var(--muted); text-decoration: none; font-weight: 400;
+}
+.doc h2:hover .anchor, .doc h3:hover .anchor { opacity: 1; }
+.doc p, .doc li { max-width: 68ch; }
+.doc ul, .doc ol { padding-left: 1.3em; }
+.doc li { margin: 4px 0; }
+.doc li::marker { color: var(--accent); }
+.doc strong { font-weight: 600; }
+
+code {
+  font: .86em var(--font-mono); background: var(--code-bg); border: 1px solid var(--line);
+  padding: .08em .38em; border-radius: 4px; overflow-wrap: anywhere;
+}
+.codeblock { position: relative; margin: 16px 0; }
+pre {
+  margin: 0; padding: 16px 18px; overflow-x: auto; border-radius: 10px;
+  background: var(--code-bg); border: 1px solid var(--line);
+  font: 13px/1.6 var(--font-mono);
+}
+pre code { background: none; border: 0; padding: 0; font-size: inherit; overflow-wrap: normal; }
+.copy {
+  position: absolute; top: 8px; right: 8px; padding: 4px 9px; border-radius: 6px;
+  font: 500 11px var(--font-body); color: var(--muted); background: var(--paper);
+  border: 1px solid var(--line); cursor: pointer; opacity: .85;
+}
+.copy:hover { color: var(--ink); opacity: 1; }
+
+.table-wrap { overflow-x: auto; margin: 16px 0; border: 1px solid var(--line); border-radius: 10px; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+th { background: var(--panel); font-weight: 600; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+td code { white-space: nowrap; }
+
+.callout {
+  margin: 18px 0; padding: 12px 16px; border-radius: 8px;
+  border-left: 3px solid var(--note-line); background: var(--note);
+}
+.callout > :first-child { margin-top: 0; }
+.callout > :last-child { margin-bottom: 0; }
+.callout .t { display: block; font-weight: 600; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 2px; color: var(--note-line); }
+.callout.tip { border-left-color: var(--tip-line); background: var(--tip); }
+.callout.tip .t { color: var(--tip-line); }
+.callout.warn { border-left-color: var(--warn-line); background: var(--warn); }
+.callout.warn .t { color: var(--warn-line); }
+
+.steps { counter-reset: step; list-style: none; padding-left: 0; }
+.steps > li { counter-increment: step; position: relative; padding-left: 38px; margin: 12px 0; }
+.steps > li::before {
+  content: counter(step); position: absolute; left: 0; top: 1px;
+  width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
+  font: 600 12px/1 var(--font-body); background: var(--accent-soft); color: var(--accent-ink);
+  border: 1px solid var(--line);
+}
+.path { font-family: var(--font-mono); font-size: .84em; color: var(--accent-ink); }
+.ui { font-weight: 600; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; margin: 20px 0; }
+.cards a {
+  display: block; padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px;
+  text-decoration: none; color: var(--ink); background: var(--paper);
+}
+.cards a:hover { border-color: var(--accent); background: var(--panel); }
+.cards a b { display: block; font-size: 14.5px; margin-bottom: 2px; }
+.cards a span { font-size: 13px; color: var(--muted); line-height: 1.5; display: block; }
+
+.pager { display: flex; gap: 12px; margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); }
+.pager a {
+  flex: 1; min-width: 0; padding: 12px 16px; border: 1px solid var(--line); border-radius: 10px;
+  text-decoration: none; color: var(--ink);
+}
+.pager a:hover { border-color: var(--accent); }
+.pager small { display: block; color: var(--muted); font-size: 12px; }
+.pager .next { text-align: right; }
+.pager span { font-weight: 600; }
+
+/* Right rail */
+.toc {
+  position: sticky; top: calc(var(--top) + env(safe-area-inset-top, 0px)); align-self: start;
+  max-height: calc(100vh - var(--top)); overflow-y: auto;
+  padding: 40px max(16px, env(safe-area-inset-right, 0px)) 40px 8px;
+  font-size: 13px;
+}
+.toc h5 { margin: 0 0 10px; font: 600 11px/1.4 var(--font-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.toc ul { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--line); }
+.toc li a {
+  display: block; padding: 4px 0 4px 12px; margin-left: -1px; border-left: 2px solid transparent;
+  color: var(--muted); text-decoration: none; line-height: 1.4;
+}
+.toc li.sub a { padding-left: 24px; font-size: 12.5px; }
+.toc li a:hover { color: var(--ink); }
+.toc li a.active { color: var(--accent-ink); border-left-color: var(--accent); font-weight: 600; }
+
+/* Search dialog */
+.search-dialog {
+  width: min(640px, calc(100vw - 32px)); max-height: min(560px, calc(100vh - 80px));
+  padding: 0; border: 1px solid var(--line); border-radius: 14px;
+  background: var(--paper); color: var(--ink); box-shadow: var(--shadow);
+  margin-top: 10vh;
+}
+.search-dialog::backdrop { background: rgba(20, 16, 12, .45); }
+.search-head { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.search-head input {
+  flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--ink);
+  font: 16px var(--font-body); padding: 6px 0;
+}
+.results { list-style: none; margin: 0; padding: 8px; overflow-y: auto; max-height: calc(min(560px, 100vh - 80px) - 110px); }
+.results li a {
+  display: block; padding: 10px 12px; border-radius: 8px; text-decoration: none; color: var(--ink);
+}
+.results li a .rp { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.results li a .rh { display: block; font-weight: 600; font-size: 14.5px; }
+.results li a .rs { display: block; font-size: 13px; color: var(--muted); line-height: 1.5; margin-top: 2px; }
+.results li a[aria-selected="true"] { background: var(--accent-soft); }
+.results mark { background: var(--mark); color: inherit; border-radius: 2px; padding: 0 1px; }
+.results .empty { padding: 28px 12px; text-align: center; color: var(--muted); }
+.search-foot { display: flex; gap: 14px; padding: 9px 16px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+
+@media (max-width: 1180px) {
+  .shell { grid-template-columns: var(--nav-w) minmax(0, 1fr); }
+  .toc { display: none; }
+}
+@media (max-width: 860px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  .menu-btn { display: inline-grid; }
+  .brand span { display: none; }
+  .sidenav {
+    position: fixed; z-index: 30; left: 0; top: calc(var(--top) + env(safe-area-inset-top, 0px));
+    width: min(300px, 86vw); height: calc(100vh - var(--top) - env(safe-area-inset-top, 0px));
+    background: var(--paper); box-shadow: var(--shadow); transform: translateX(-105%); transition: transform .2s ease;
+  }
+  body.nav-open .sidenav { transform: none; }
+  main { padding-top: 28px; }
+  .search-btn .label, .search-btn kbd { display: none; }
+  .search-btn { width: 36px; padding: 0; justify-content: center; }
+  .pager { flex-direction: column; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+</style>
+
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menu-btn" aria-label="Open navigation" aria-expanded="false">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+  </button>
+  <a class="brand" href="#overview"><b>Iron Oak</b><span>Theme documentation</span></a>
+  <button class="search-btn" id="search-btn" aria-label="Search documentation">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <span class="label">Search docs</span><kbd>⌘K</kbd>
+  </button>
+</header>
+
+<div class="shell">
+  <nav class="sidenav" id="sidenav" aria-label="Documentation"></nav>
+
+  <main id="main">
+
+<!-- ============================================================
+     To add a page: copy an <article class="doc">, give it a unique id
+     (letters, digits, - only) and a data-group. The sidebar, search,
+     "On this page" and prev/next are built from these articles.
+     ============================================================ -->
+
+<!-- ======================= START HERE ======================= -->
+
+<article class="doc" id="overview" data-group="Start here">
+  <h1>Iron Oak theme overview</h1>
+  <p class="lede">How the Iron Oak Apparel storefront is built, and where to go to change it. Written for the people who run the store day to day and the developers who maintain it.</p>
+
+  <h2>What this site is</h2>
+  <p>Iron Oak Apparel sells western pearl snap polos, hoodies, hats and belts. The storefront runs on <strong>Shopify</strong> using Shopify's <strong>Horizon</strong> theme (version 4.1.5), customized by Nine15 to match the Iron Oak design. Almost every page is assembled in the Shopify theme editor out of Horizon sections and blocks, so most content changes need no code.</p>
+
+  <h3>Key features</h3>
+  <ul>
+    <li><strong>One product per color.</strong> Each colorway is its own product. Color "swatches" on the product page link between those products. See <a href="#swatches">Swatches</a>.</li>
+    <li><strong>Collection-aware product pages.</strong> The breadcrumb, swatches and links remember which collection the shopper came from. See <a href="#breadcrumbs">Breadcrumbs</a>.</li>
+    <li><strong>Reserve mega menu.</strong> A custom Shop menu with a signature Polos panel and three feature cards, all driven by Shopify menus and block settings. See <a href="#navigation">Navigation &amp; mega menu</a>.</li>
+    <li><strong>Vertical filter rail</strong> with chips, color swatches, a hide-rail toggle and a "Ask our chat" note. See <a href="#filters">Filters</a>.</li>
+    <li><strong>Size chart page</strong> powered by a metaobject, with a size finder and IN/CM toggle. See <a href="#metaobjects">Metaobjects</a>.</li>
+    <li><strong>Contact and store locations</strong> with live open/closed status in Central Time. See <a href="#pages">Pages</a>.</li>
+    <li>Apps for reviews (Judge.me), email/SMS (Klaviyo, Alia), cart and AI chat (Slide), search (Ryzo), fit advice (WAIR) and gifting (Gifted). See <a href="#apps">Apps &amp; integrations</a>.</li>
+  </ul>
+
+  <h2>Technology</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Layer</th><th>What we use</th></tr></thead>
+    <tbody>
+      <tr><td>Platform &amp; hosting</td><td>Shopify (store <code>iron-oak-apparel-co.myshopify.com</code>). Shopify hosts the site, CDN, SSL and checkout.</td></tr>
+      <tr><td>Theme</td><td>Horizon 4.1.5 by Shopify, customized. Online Store 2.0 JSON templates with theme blocks.</td></tr>
+      <tr><td>Languages</td><td>Liquid (templates), JSON (page layouts and settings), CSS, vanilla JavaScript (web components). No build step.</td></tr>
+      <tr><td>Source control</td><td>GitHub repo <code>NINE15Team/IronOak</code>, connected to Shopify through the GitHub integration.</td></tr>
+      <tr><td>Fonts</td><td>Archivo and Cormorant from the Shopify font library, plus Adobe Fonts (Ringold Clarendon for headings, League Gothic for product card titles).</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Where to start</h2>
+  <div class="cards">
+    <a href="#theme-editor"><b>Edit content</b><span>Sections, blocks and dynamic sources in the theme editor.</span></a>
+    <a href="#metafields"><b>Metafields</b><span>Every custom field the theme reads, and what it does.</span></a>
+    <a href="#swatches"><b>Swatches</b><span>How color swatches find sibling products.</span></a>
+    <a href="#troubleshooting"><b>Troubleshooting</b><span>Common issues and how to fix them.</span></a>
+  </div>
+
+  <div class="callout tip"><span class="t">Tip</span>Press <kbd>/</kbd> or <kbd>⌘K</kbd> anywhere to search these docs.</div>
+</article>
+
+<article class="doc" id="architecture" data-group="Start here">
+  <h1>Theme architecture</h1>
+  <p class="lede">How the theme files fit together, and the three building blocks you see in the editor: templates, sections and blocks.</p>
+
+  <h2>Folder structure</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Folder</th><th>What lives there</th></tr></thead>
+    <tbody>
+      <tr><td><code>templates/</code></td><td>One JSON file per page type (and per alternate template, e.g. <code>product.hats.json</code>). Lists the sections on that page and all their settings. Edited by the theme editor.</td></tr>
+      <tr><td><code>sections/</code></td><td>Liquid sections (<code>hero</code>, <code>product-list</code>, <code>main-collection</code>…) and the two section groups <code>header-group.json</code> and <code>footer-group.json</code>.</td></tr>
+      <tr><td><code>blocks/</code></td><td>Theme blocks that go inside sections: <code>text</code>, <code>group</code>, <code>button</code>, <code>variant-picker</code>, <code>filters</code>… Files starting with <code>_</code> are private blocks used only by one parent section.</td></tr>
+      <tr><td><code>snippets/</code></td><td>Reusable Liquid partials (product card, variant picker, mega menu pieces). Custom Iron Oak snippets start with <code>io-</code>.</td></tr>
+      <tr><td><code>assets/</code></td><td>CSS, JS, SVG icons. Custom scripts: <code>io-contact.js</code>, <code>io-store-hours.js</code>, <code>io-chat-links.js</code>, <code>io-fit-advisor.js</code>, <code>io-carousel-arrows.js</code>, <code>size-chart.js/.css</code>.</td></tr>
+      <tr><td><code>config/</code></td><td><code>settings_schema.json</code> (what Theme settings offers) and <code>settings_data.json</code> (the chosen values, app embeds).</td></tr>
+      <tr><td><code>layout/</code></td><td><code>theme.liquid</code> (the HTML shell for every page) and <code>password.liquid</code>.</td></tr>
+      <tr><td><code>locales/</code></td><td>Translations and editor labels.</td></tr>
+      <tr><td><code>docs/</code></td><td>This documentation. Shopify ignores this folder.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Templates, sections and blocks</h2>
+  <p>A page is a <strong>template</strong>. A template is a stack of <strong>sections</strong>. A section holds <strong>blocks</strong>, and the <code>group</code> block can hold more blocks, so layouts nest as deep as needed.</p>
+  <div class="codeblock"><pre><code>templates/product.json
+└─ section: product-information       (main product area)
+   ├─ _product-media-gallery           (static block: photos)
+   └─ _product-details                 (static block: right column)
+      ├─ group "breadcrumb" → text
+      ├─ group "header" → text (title), price, Judge.me badge
+      ├─ variant-picker                (swatches + sizes)
+      ├─ buy-buttons → quantity, add-to-cart, accelerated-checkout
+      └─ group "description" → text {{ closest.product.description }}
+└─ section: media-with-content        (feature callout)
+└─ section: section "Reviews"         (Judge.me widget app block)
+└─ section: product-list              (Shop Our Best Sellers)</code></pre></div>
+  <p>The header and footer are <strong>section groups</strong>. They appear on every page and are edited from any page in the editor:</p>
+  <ul>
+    <li><span class="path">sections/header-group.json</span>: announcement bar, header (logo + Reserve mega menu).</li>
+    <li><span class="path">sections/footer-group.json</span>: newsletter, footer menus, utilities (copyright, policies), tagline.</li>
+  </ul>
+
+  <h2>How we build pages</h2>
+  <p>The theme follows one rule: <strong>compose with Horizon sections and blocks, do not write new sections</strong>. Where Horizon was missing a control, we added settings to the existing section (for example mobile padding, promo tile, sibling swatches) instead of forking it. This keeps every page editable in the theme editor and keeps the theme upgradeable.</p>
+  <div class="callout"><span class="t">Note</span><code>custom-liquid</code> blocks are used only for scripts and app glue (for example the contact page script and the size chart). They are not for layout.</div>
+
+  <h2>Custom code at a glance</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>snippets/variant-main-picker.liquid</code></td><td>Sibling color swatches, size carry-over, size chart and fit advisor links.</td></tr>
+      <tr><td><code>snippets/text.liquid</code></td><td><code>[collection_link]</code> and <code>[collection_count]</code> text tokens.</td></tr>
+      <tr><td><code>blocks/_header-menu.liquid</code>, <code>snippets/io-menu-*.liquid</code></td><td>Reserve mega menu and mobile drawer.</td></tr>
+      <tr><td><code>blocks/filters.liquid</code>, <code>snippets/list-filter.liquid</code></td><td>Filter rail, chips, hidden values, filter note.</td></tr>
+      <tr><td><code>sections/main-collection.liquid</code>, <code>snippets/product-grid.liquid</code></td><td>Promo tile in the grid, column rules, "Read more" collection description.</td></tr>
+      <tr><td><code>sections/store-locations.liquid</code>, <code>assets/io-store-hours.js</code></td><td>Store locations with live open/closed status.</td></tr>
+      <tr><td><code>blocks/contact-form.liquid</code>, <code>assets/io-contact.js</code></td><td>Contact form topics, order number field, live support status.</td></tr>
+      <tr><td><code>snippets/io-polo-callout-photo.liquid</code></td><td>Per-product photos for the PDP feature callouts.</td></tr>
+      <tr><td><code>snippets/alia-styles.liquid</code></td><td>Restyles the Alia popup to match the theme.</td></tr>
+    </tbody>
+  </table></div>
+</article>
+
+<article class="doc" id="sitemap" data-group="Start here">
+  <h1>Sitemap &amp; templates</h1>
+  <p class="lede">Every template in the theme and the sections on it, top to bottom. Use this to find which template a page uses before editing it.</p>
+
+  <h2>Core pages</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Template</th><th>Used for</th><th>Sections</th></tr></thead>
+    <tbody>
+      <tr><td><code>index</code></td><td>Home</td><td>Hero slideshow · Trust bar · Best sellers · Collections slider · The collections (mosaic) · Shop by fit · Our story · Judge.me reviews carousel · Gallery · Instagram (Instafeed)</td></tr>
+      <tr><td><code>collection</code></td><td>Default collection</td><td>Collection banner · Trust bar · Product grid with filters</td></tr>
+      <tr><td><code>product</code></td><td>Default product (polos)</td><td>Product information · Made to be different callout · Reviews · Shop Our Best Sellers</td></tr>
+      <tr><td><code>cart</code></td><td>Cart page</td><td>Cart · Product list</td></tr>
+      <tr><td><code>search</code></td><td>Search results</td><td>Search header · Results</td></tr>
+      <tr><td><code>blog</code> / <code>article</code></td><td>Blog and posts</td><td>Blog · Collection list / Post · Best sellers</td></tr>
+      <tr><td><code>list-collections</code></td><td>/collections</td><td>Collection list</td></tr>
+      <tr><td><code>404</code>, <code>password</code>, <code>gift_card</code></td><td>System pages</td><td>Shopify defaults with a product list on 404</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Alternate product templates</h2>
+  <p>Assign these in <span class="ui">Products → [product] → Theme template</span>.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Template</th><th>Use for</th></tr></thead>
+    <tbody>
+      <tr><td><code>product</code> (default)</td><td>Adult pearl snap polos</td></tr>
+      <tr><td><code>product.hats</code></td><td>Hats</td></tr>
+      <tr><td><code>product.hoodie-product-page</code></td><td>Adult hoodies (signature yoked hoodie callout)</td></tr>
+      <tr><td><code>product.kids-polos</code></td><td>Youth polos (Match with Dad callout)</td></tr>
+      <tr><td><code>product.kids-hoodie-product-page</code></td><td>Youth hoodies</td></tr>
+      <tr><td><code>product.iron-oak-x-zilker-belts</code></td><td>Zilker belt collab (three craft callouts)</td></tr>
+      <tr><td><code>product.gift-card</code></td><td>Gift card</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Alternate collection templates</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Template</th><th>Use for</th></tr></thead>
+    <tbody>
+      <tr><td><code>collection</code> (default)</td><td>Most collections</td></tr>
+      <tr><td><code>collection.shop-all-template</code></td><td>Shop all: a "Jump to collection" bar and one product list per family (Fall, The Original, Western Yoke, Vintage, Oak-Washed Denim, Refined Plaid, Signature Solids, Texas Heritage, Buckaroos)</td></tr>
+      <tr><td><code>collection.hats</code></td><td>Hats</td></tr>
+      <tr><td><code>collection.high-road-sun-hoodies</code></td><td>High Road sun hoodies</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Page templates</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Template</th><th>Page</th></tr></thead>
+    <tbody>
+      <tr><td><code>page</code></td><td>Plain content page (uses the page's body)</td></tr>
+      <tr><td><code>page.full-width</code></td><td>Our story</td></tr>
+      <tr><td><code>page.contact</code></td><td>Contact: topics, form, store locations, perks</td></tr>
+      <tr><td><code>page.locations-page</code></td><td>Store locations</td></tr>
+      <tr><td><code>page.size-chart</code></td><td>Size chart (reads the Size chart metaobject)</td></tr>
+      <tr><td><code>page.faq</code>, <code>page.returns</code>, <code>page.accessibility-statement</code></td><td>Help pages</td></tr>
+      <tr><td><code>page.email-sign-up</code></td><td>Klaviyo sign-up form</td></tr>
+      <tr><td><code>page.collabs</code></td><td>Collabs creator application (app)</td></tr>
+      <tr><td><code>page.group-order-page</code></td><td>Group / corporate orders</td></tr>
+      <tr><td><code>page.golf-landing-page</code>, <code>page.father-s-day-guide</code>, <code>page.hoodie-teaser</code>, <code>page.poodie</code>, <code>page.iron-oak-x-zilker-belts</code></td><td>Campaign landing pages</td></tr>
+    </tbody>
+  </table></div>
+</article>
+
+<article class="doc" id="workflow" data-group="Start here">
+  <h1>Deploy, backup &amp; workflow</h1>
+  <p class="lede">How changes move between the theme editor, GitHub and the live store, and how to roll back safely.</p>
+
+  <h2>How the theme is connected</h2>
+  <p>The live theme is connected to the GitHub repo <code>NINE15Team/IronOak</code> through Shopify's GitHub integration. The sync runs in both directions:</p>
+  <ul>
+    <li><strong>Editor → GitHub.</strong> When someone saves in the theme editor, Shopify commits the change to the connected branch. These show up as commits named <em>"Update from Shopify for theme …"</em>.</li>
+    <li><strong>GitHub → Store.</strong> When a developer pushes to the branch, Shopify updates the connected theme within a minute or two.</li>
+  </ul>
+  <div class="callout warn"><span class="t">Watch out</span>Because both sides write to the same branch, a developer must <strong>pull before pushing</strong>. Pushing an old copy of a template overwrites editor changes made since.</div>
+
+  <h2>Branches</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Branch</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td><code>main</code></td><td>Production history.</td></tr>
+      <tr><td><code>final-copy</code></td><td>Launch working branch, connected to a theme in Shopify.</td></tr>
+      <tr><td>Feature branches</td><td>Connect them to an unpublished theme to preview, then merge.</td></tr>
+    </tbody>
+  </table></div>
+  <p>Check <span class="ui">Online Store → Themes</span> to see which theme is connected to which branch.</p>
+
+  <h2>Local development</h2>
+  <p>Developers use Shopify CLI from the theme folder:</p>
+  <div class="codeblock"><pre><code>shopify theme dev --store iron-oak-apparel-co</code></pre></div>
+  <p>This serves a live-reloading preview of local files against real store data. Changes made in the editor during <code>theme dev</code> are written back to the local files. To pull the latest editor changes without the GitHub sync:</p>
+  <div class="codeblock"><pre><code>shopify theme pull --store iron-oak-apparel-co --theme &lt;theme-id&gt;</code></pre></div>
+
+  <h2>Backups &amp; rollback</h2>
+  <ol class="steps">
+    <li><strong>Before big changes</strong>, go to <span class="ui">Online Store → Themes → ⋯ → Duplicate</span> on the live theme. The copy is a full backup you can publish in one click.</li>
+    <li><strong>To restore one file</strong>, find the commit in GitHub before the change and revert it, or use <span class="ui">Edit code → [file] → Older versions</span> in Shopify.</li>
+    <li><strong>To restore everything</strong>, publish the duplicate you made, or connect a theme to an older commit.</li>
+  </ol>
+  <div class="callout"><span class="t">Note</span>Products, collections, metafields, menus and pages are store data, not theme files. Theme backups do not include them. Export products from <span class="ui">Products → Export</span> if you need a data backup.</div>
+
+  <h2>Domain &amp; SSL</h2>
+  <p>Shopify issues and renews SSL certificates automatically for every connected domain. Domains are managed in <span class="ui">Settings → Domains</span>. Nothing in the theme needs to change when a domain or certificate changes.</p>
+</article>
+
+<!-- ======================= EDITING THE SITE ======================= -->
+
+<article class="doc" id="theme-editor" data-group="Editing the site">
+  <h1>Using the theme editor</h1>
+  <p class="lede">Most content lives in sections and blocks. This page covers the editor basics and the Horizon patterns used across the site.</p>
+
+  <h2>Open the editor</h2>
+  <ol class="steps">
+    <li>Go to <span class="ui">Online Store → Themes</span> and click <span class="ui">Customize</span> on the theme.</li>
+    <li>Use the page picker at the top to switch template (e.g. <span class="ui">Products → product.hats</span>).</li>
+    <li>The left panel lists sections and their blocks. Click one to edit its settings on the right.</li>
+    <li>Click <span class="ui">Save</span>. The change is live (and committed to GitHub) right away.</li>
+  </ol>
+
+  <h2>Add, move and hide</h2>
+  <ul>
+    <li><strong>Add a section:</strong> <span class="ui">Add section</span> at the bottom of a template, or between sections. Prefer <em>Section</em>, <em>Product list</em>, <em>Media with content</em>, <em>Hero</em> or <em>Carousel</em>.</li>
+    <li><strong>Add a block:</strong> <span class="ui">Add block</span> inside a section or group. Use <em>Group</em> to make rows and columns, then <em>Text</em>, <em>Button</em>, <em>Image</em>, <em>Icon</em> inside.</li>
+    <li><strong>Reorder:</strong> drag the handle beside a section or block.</li>
+    <li><strong>Hide:</strong> click the eye icon. Hidden sections stay in the template (e.g. the old Reviews carousel on the home page) and can be turned back on later.</li>
+  </ul>
+
+  <h2>Groups do the layout</h2>
+  <p>A <strong>Group</strong> block arranges its children in a row or column. Its settings control direction, alignment, gap, width, padding (desktop and mobile), background and border. Iron Oak added three group settings:</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Setting</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td>Stack below width</td><td>Stacks a row into one column when the group is narrower than this width, at any screen size. Width must be <em>Fill</em>. <code>0</code> turns it off.</td></tr>
+      <tr><td>Minimum height / mobile</td><td>Keeps tiles in a row the same height.</td></tr>
+      <tr><td>Custom class</td><td>A CSS hook for developers. Some scripts rely on it (see <a href="#pages">Contact page</a>). Do not rename these classes.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Dynamic sources</h2>
+  <p>Text settings can pull live data instead of fixed copy. Click the <span class="ui">Connect dynamic source</span> icon beside a field, or type Liquid-style references directly. Examples used in the templates:</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Reference</th><th>Shows</th></tr></thead>
+    <tbody>
+      <tr><td><code>{{ closest.product.title }}</code></td><td>The current product's title (PDP heading, breadcrumb).</td></tr>
+      <tr><td><code>{{ closest.product.description }}</code></td><td>The product description.</td></tr>
+      <tr><td><code>{{ closest.collection.title }}</code></td><td>The current collection's title (collection banner).</td></tr>
+      <tr><td><code>{{ closest.collection.description }}</code></td><td>The collection description.</td></tr>
+      <tr><td><code>{{ settings.color_palette.bronze }}</code></td><td>A theme palette color. Used in color settings so a palette change updates every section.</td></tr>
+    </tbody>
+  </table></div>
+  <p>To show a metafield, connect it as a dynamic source. The PDP has an empty <em>Eyebrow (connect a metafield)</em> text block in the header group ready for this.</p>
+
+  <h2>Padding on desktop and mobile</h2>
+  <p>Every section has <span class="ui">Padding → Top / Bottom</span> plus separate mobile values. Change spacing here, never with custom CSS: CSS overrides these settings and makes them look broken.</p>
+</article>
+
+<article class="doc" id="theme-settings" data-group="Editing the site">
+  <h1>Theme settings</h1>
+  <p class="lede">Site-wide colors, fonts, buttons and app styling. Open with the gear icon (<span class="ui">Theme settings</span>) in the editor.</p>
+
+  <h2>Color palette</h2>
+  <p>Sections reference these named colors, so changing one updates every section using it.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Name</th><th>Value</th><th>Used for</th></tr></thead>
+    <tbody>
+      <tr><td><code>background</code></td><td>#f2ede0</td><td>Page background</td></tr>
+      <tr><td><code>foreground</code></td><td>#2b241c</td><td>Body text</td></tr>
+      <tr><td><code>color1</code></td><td>#6b6154</td><td>Secondary text</td></tr>
+      <tr><td><code>color2</code></td><td>#d6d1c4</td><td>Borders, input and variant borders</td></tr>
+      <tr><td><code>parchment</code> / <code>sand</code></td><td>#ece5d3 / #ecdfc0</td><td>Panels, announcement bar</td></tr>
+      <tr><td><code>cream_text</code></td><td>#e9ddc4</td><td>Text on dark sections</td></tr>
+      <tr><td><code>bark</code> / <code>espresso</code></td><td>#191510 / #3a2a1c</td><td>Dark sections, primary buttons</td></tr>
+      <tr><td><code>bronze</code> / <code>brass</code></td><td>#7b633b / #b99a68</td><td>Accents, eyebrows</td></tr>
+      <tr><td><code>success</code> / <code>success_bg</code></td><td>#3f6b3f / #dfe8d3</td><td>In stock, confirmations</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Typography</h2>
+  <ul>
+    <li><strong>Body:</strong> Archivo. <strong>Subheading / buttons:</strong> Archivo semibold. <strong>Heading / accent:</strong> Cormorant.</li>
+    <li><strong>Custom heading font:</strong> Ringold Clarendon from Adobe Fonts. It replaces the heading and accent fonts. Clear the field to go back to Cormorant.</li>
+    <li><strong>Custom product card title font:</strong> League Gothic (Adobe). Turn it off to use the heading font.</li>
+    <li>Each H1–H6 preset has a desktop size, a <strong>mobile size</strong> and a <strong>weight</strong>, and can use the theme or custom font.</li>
+  </ul>
+  <div class="callout warn"><span class="t">Watch out</span>The Adobe fonts load from the Iron Oak Adobe Fonts kit. If the kit expires or the domain is removed from it, headings fall back to a system serif.</div>
+
+  <h2>Buttons</h2>
+  <p>Size, letter spacing, vertical and horizontal padding are set here, with separate mobile values. Add to cart, the quantity box, Shop Pay and size buttons all read the same values so they stay the same height. Change button sizing here only.</p>
+
+  <h2>Iron Oak additions</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Group</th><th>Setting</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td>Logo</td><td>Scrolled height</td><td>Logo height when the sticky header condenses.</td></tr>
+      <tr><td>Page layout</td><td>Page side margin (desktop / mobile)</td><td>The gutter for every page-width section.</td></tr>
+      <tr><td>Cart</td><td>Cart title / product title / You may also like fonts</td><td>Typography inside the Slide cart drawer and the cart page.</td></tr>
+      <tr><td>Popovers &amp; modals</td><td>Match Alia popup to theme</td><td>Restyles the Alia email/SMS popup with theme fonts, colors and buttons.</td></tr>
+      <tr><td>Popovers &amp; modals</td><td>Chat button</td><td>Style of the Slide chat launcher (round bubble by default, or text / icon only).</td></tr>
+      <tr><td>Product cards</td><td>Second image as default</td><td>Shows the second product photo on cards and reveals the first on hover.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>App embeds</h2>
+  <p>The <span class="ui">App embeds</span> tab (puzzle icon) turns site-wide apps on and off. See <a href="#apps">Apps &amp; integrations</a> for the list.</p>
+</article>
+
+<article class="doc" id="homepage" data-group="Editing the site">
+  <h1>Home page</h1>
+  <p class="lede">The home page (<code>templates/index.json</code>) section by section, and what to edit in each.</p>
+
+  <h2>Hero slideshow</h2>
+  <p>Section <em>Hero</em> (Slideshow). Each slide has an image or video, a content group with eyebrow, heading and a buttons group.</p>
+  <ul>
+    <li><strong>Mobile image:</strong> optional, shown below 750px instead of the main image.</li>
+    <li><strong>Video URL (.mp4):</strong> used when no Shopify video is selected. Add a <strong>Video URL poster</strong> so something shows while it loads.</li>
+    <li><strong>Media position:</strong> which part of the photo stays in view when cropped.</li>
+    <li><strong>Custom height (% of screen)</strong> for desktop and mobile, and <strong>Fit below header on desktop</strong> to keep buttons above the fold.</li>
+  </ul>
+
+  <h2>Trust bar</h2>
+  <p>A <em>Section</em> with an Items group: four groups of icon + text. Edit the text blocks; swap icons in the Icon block.</p>
+
+  <h2>Best sellers and other product lists</h2>
+  <p>Section <em>Product list</em>. Pick the collection in the section settings. The header group holds the eyebrow and heading; the <em>Arrows</em> custom liquid block wires the carousel arrows (<code>io-carousel-arrows.js</code>) and should be left in place.</p>
+  <ul>
+    <li><strong>Mobile layout</strong> and <strong>Products shown on mobile</strong> control the phone view.</li>
+    <li><strong>Anchor ID</strong> lets other links jump to the list, e.g. <code>#col-western-yoke</code> on Shop all.</li>
+  </ul>
+
+  <h2>Collections slider and mosaic</h2>
+  <p><em>Collections slider</em> is a Collection list section; choose collections in its settings. <em>The collections</em> mosaic is a Section built from groups; each tile is a group with a background image, text and a button.</p>
+
+  <h2>Shop by fit</h2>
+  <p>A grid of groups, one per fit, each with a photo and a link. Update images and links per tile.</p>
+
+  <h2>Our story, reviews, gallery, Instagram</h2>
+  <ul>
+    <li><strong>Our story:</strong> Media with content section. Edit eyebrow, heading, copy and CTA.</li>
+    <li><strong>Reviews carousel:</strong> Judge.me cards carousel app block. Content comes from Judge.me. The older theme <em>Reviews</em> carousel with hand-typed reviews is hidden.</li>
+    <li><strong>Gallery:</strong> the image grid is hidden; only the header shows above Instagram.</li>
+    <li><strong>Instagram:</strong> Instafeed app block. Manage the feed in the Instafeed app.</li>
+  </ul>
+</article>
+
+<article class="doc" id="navigation" data-group="Editing the site">
+  <h1>Navigation &amp; mega menu</h1>
+  <p class="lede">The header uses a custom "Reserve" mega menu driven by Shopify menus. You change links in <span class="ui">Content → Menus</span> and layout in the header menu block.</p>
+
+  <h2>Menus used</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Menu handle</th><th>Where it shows</th></tr></thead>
+    <tbody>
+      <tr><td><code>reserve-mega-menu</code></td><td>Main header navigation</td></tr>
+      <tr><td><code>reserve-polos-panel</code></td><td>The signature "Polos" panel inside the Shop mega menu, and the Classic / Pocketed footer columns</td></tr>
+      <tr><td><code>reserve-drawer-footer</code></td><td>Utility links at the bottom of the mobile drawer (Account is added after these)</td></tr>
+      <tr><td><code>reserve-footer-shop</code>, <code>reserve-footer-help</code>, <code>reserve-footer-follow</code></td><td>Footer columns SHOP, HELP, FOLLOW</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>How the Shop mega menu is built</h2>
+  <ol class="steps">
+    <li>The main menu item named in <strong>Menu item that opens the shop mega menu</strong> (currently <code>Shop</code>) opens the mega menu.</li>
+    <li>Its children named in <strong>First column groups</strong> (currently <code>Start here, Featured collections</code>) stack in the first column. Each child is a heading and its own children are links.</li>
+    <li>The signature panel comes from the <strong>Panel menu</strong> (<code>reserve-polos-panel</code>). Each top-level item is a group (Classic, Pocketed…), its children are the links. It has a heading (<em>Polos</em>), tag (<em>Our signature</em>) and a button (<em>Shop all polos</em>).</li>
+    <li>The remaining Shop children stack after the panel.</li>
+    <li>Three <strong>feature cards</strong> sit on the right. Each has image, eyebrow, heading, text, link label and link. If image or link are empty, the card uses the chosen <strong>Collection</strong>'s image and URL.</li>
+  </ol>
+  <p>Any other main menu item with children (e.g. Discover) opens a simpler columns menu.</p>
+
+  <h2>Badges and captions in link titles</h2>
+  <p>Menu link titles support two shortcuts:</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Type this in the menu</th><th>Shows</th></tr></thead>
+    <tbody>
+      <tr><td><code>Sun Hoodies [New]</code></td><td>"Sun Hoodies" with a <em>New</em> badge</td></tr>
+      <tr><td><code>Belts | Iron Oak x Zilker</code></td><td>"Belts" with a small caption under it</td></tr>
+      <tr><td><code>Classic | Clean chest, tailored</code></td><td>Panel group heading with a subheading</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Mobile drawer</h2>
+  <p>Same menu, shown as a drawer. Header menu block settings control it: <strong>Drawer colors</strong>, <strong>Quick links</strong> (chip buttons at the top, defaults to the Shop menu's first column), <strong>Feature cards heading</strong>, <strong>Footer links</strong> menu and <strong>Drawer tagline</strong> (<em>Still country.</em>).</p>
+
+  <h2>Footer menus</h2>
+  <p>Footer columns are <em>Menu</em> blocks. The <strong>Menu item</strong> setting shows only the links under one top-level item, which is how CLASSIC POLOS and POCKETED POLOS both come from <code>reserve-polos-panel</code>. <strong>Open external links in new tab</strong> is on for social links.</p>
+</article>
+
+<article class="doc" id="header-footer" data-group="Editing the site">
+  <h1>Header, announcement &amp; footer</h1>
+  <p class="lede">Site-wide chrome in the header and footer section groups.</p>
+
+  <h2>Announcement bar</h2>
+  <p>Edit the text in <span class="ui">Header → Announcement bar → Announcement</span>. Each announcement has an optional <strong>Mobile text</strong> and <strong>Mobile size</strong> for a shorter phone version.</p>
+
+  <h2>Header</h2>
+  <ul>
+    <li>Logo centered, menu left, search and actions right. <strong>Mobile position</strong> controls the logo on phones.</li>
+    <li><strong>Sticky header:</strong> always. <strong>Scrolled padding</strong> sets the condensed height.</li>
+    <li><strong>Use inverse logo</strong> swaps to the light logo over dark heroes.</li>
+    <li><strong>Search opens:</strong> see <a href="#search-chat">Search &amp; chat</a>.</li>
+  </ul>
+
+  <h2>Footer</h2>
+  <ul>
+    <li><strong>Newsletter:</strong> a Section with an Email signup block. Sign-ups are added to Shopify customers with email marketing consent.</li>
+    <li><strong>Footer:</strong> logo + text group and five Menu blocks. Optional <strong>background pattern</strong> and opacity.</li>
+    <li><strong>Utilities:</strong> copyright (with a <strong>Credit text</strong> setting) and policy links. Policies come from <span class="ui">Settings → Policies</span>.</li>
+    <li><strong>Tagline:</strong> a final Section with a text line.</li>
+  </ul>
+</article>
+
+<article class="doc" id="text-tokens" data-group="Editing the site">
+  <h1>Text tokens</h1>
+  <p class="lede">Shortcodes you can type into any Text block. The theme replaces them when the page renders.</p>
+
+  <div class="table-wrap"><table>
+    <thead><tr><th>Token</th><th>Becomes</th><th>Where it works</th></tr></thead>
+    <tbody>
+      <tr><td><code>[collection_link]</code></td><td>A link to the collection the shopper came from, using its title. With no collection context it becomes a <em>Shop</em> link to <code>/collections/all</code>.</td><td>Any text block. Used in the PDP breadcrumb.</td></tr>
+      <tr><td><code>[collection_count]</code></td><td>The number of products in the collection.</td><td>Collection pages only. Used in the banner: <code>[collection_count] STYLES</code>.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout"><span class="t">Why tokens</span>Shopify's dynamic sources do not offer the product count or "the collection I came from", so these fill that gap. Code lives in <span class="path">snippets/text.liquid</span>.</div>
+</article>
+
+<article class="doc" id="breadcrumbs" data-group="Editing the site">
+  <h1>Breadcrumbs</h1>
+  <p class="lede">Breadcrumbs are ordinary Text blocks, so you edit them like any other copy. The product page version knows which collection the shopper came from.</p>
+
+  <h2>Product page breadcrumb</h2>
+  <p>In every product template: <span class="ui">Product information → Product details → breadcrumb → crumb</span>. The text is:</p>
+  <div class="codeblock"><pre><code>&lt;a href="/"&gt;Home&lt;/a&gt; / [collection_link] / {{ closest.product.title }}</code></pre></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Shopper arrives from</th><th>URL</th><th>Breadcrumb</th></tr></thead>
+    <tbody>
+      <tr><td>A collection grid or product list</td><td><code>/collections/western-yoke/products/the-hollow</code></td><td>Home / <u>Western Yoke</u> / The Hollow</td></tr>
+      <tr><td>Search, an email, a direct link</td><td><code>/products/the-hollow</code></td><td>Home / <u>Shop</u> / The Hollow</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>How collection context is kept</h3>
+  <ul>
+    <li>Product cards in collection grids and product lists link with the collection in the URL (Liquid <code>within</code>), so the next page knows where the shopper came from.</li>
+    <li>Sibling swatches on the PDP keep the same collection in their links, so switching color does not lose the breadcrumb.</li>
+    <li>Canonical URLs still point to <code>/products/…</code>, so this does not create duplicate pages for SEO.</li>
+  </ul>
+
+  <h2>Collection page breadcrumb</h2>
+  <p>In collection templates: <span class="ui">Collection banner → Content → Breadcrumb</span>.</p>
+  <div class="codeblock"><pre><code>&lt;a href="/"&gt;Home&lt;/a&gt; / &lt;a href="/collections/all"&gt;Shop&lt;/a&gt; / {{ closest.collection.title }}</code></pre></div>
+  <p>The middle step is a fixed link. Change the text or URL in the block if needed.</p>
+</article>
+
+<article class="doc" id="pages" data-group="Editing the site">
+  <h1>Pages: contact, locations, FAQ</h1>
+  <p class="lede">Content pages are built from sections. Two pages have extra behavior that relies on specific settings.</p>
+
+  <h2>Create a page</h2>
+  <ol class="steps">
+    <li><span class="ui">Online Store → Pages → Add page</span>. Give it a title and handle.</li>
+    <li>Pick a <strong>Theme template</strong> on the right (see <a href="#sitemap">Sitemap</a>).</li>
+    <li>Open the page in the theme editor to edit its sections. All pages on the same template share the layout.</li>
+  </ol>
+  <div class="callout tip"><span class="t">Tip</span>For a new landing page with its own layout, duplicate a template in the editor (<span class="ui">Templates → Create template → Based on</span>) instead of changing a shared one.</div>
+
+  <h2>Contact page</h2>
+  <p>Template <code>page.contact</code>. A script (<code>io-contact.js</code>, loaded by the <em>Contact page script</em> custom liquid section) adds:</p>
+  <ul>
+    <li><strong>Live support status:</strong> "Our team is online now" on weekdays 9am–5pm Central, otherwise when chat reopens. The hours are set in the script.</li>
+    <li><strong>Topic router:</strong> clicking a topic shows its answer and selects the matching topic in the form. Topics, answers and the form's topic list <strong>pair up by order</strong>.</li>
+  </ul>
+  <p>The script finds parts of the page by group <strong>Custom class</strong>: <code>io-ct-status</code>, <code>io-ct-topics</code>, <code>io-ct-topic</code>, <code>io-ct-answers</code>, <code>io-ct-answer</code>, <code>io-ct-channels</code>, <code>io-ct-form-panel</code>. Keep these classes when duplicating groups.</p>
+  <h3>Contact form settings</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Setting</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Topics</td><td>One per line. End a line with <code>*</code> to ask for an order number on that topic. The last topic is selected by default.</td></tr>
+      <tr><td>Show phone / order number / labels</td><td>Turn fields on or off.</td></tr>
+      <tr><td>Success panel</td><td>Eyebrow, heading, text and button. When a heading is set, the panel replaces the form after sending.</td></tr>
+    </tbody>
+  </table></div>
+  <p>Submissions go to the store's contact email (<span class="ui">Settings → Notifications</span> sender / store email).</p>
+
+  <h2>Store locations</h2>
+  <p>Section <em>Store Locations</em>, used on Contact and the Locations page. Each <strong>Location</strong> block has store name, address, city/state/ZIP (used for directions), hours, note and up to five images.</p>
+  <p>Write <strong>Hours</strong> one line per day or day range:</p>
+  <div class="codeblock"><pre><code>Mon – Tue: Closed
+Wed – Thu: 11:00am – 7:00pm
+Fri – Sat: 10:00am – 8:00pm
+Sun: 12:00pm – 5:00pm</code></pre></div>
+  <p>With <strong>Show live open / closed status</strong> on, the page shows an Open/Closed pill and highlights today, using Central Time. Holiday closures are not detected; add them to the note.</p>
+
+  <h2>FAQ, returns, accessibility</h2>
+  <p>These are Hero + Section templates. Questions are Accordion blocks; edit the heading and text of each row.</p>
+</article>
+
+<!-- ======================= CATALOG ======================= -->
+
+<article class="doc" id="product-model" data-group="Catalog">
+  <h1>How products are set up</h1>
+  <p class="lede">The catalog has one rule that everything else depends on: <strong>each color is its own product</strong>, and sizes are its variants.</p>
+
+  <h2>Products, families and siblings</h2>
+  <ul>
+    <li><strong>Product:</strong> one colorway, e.g. <em>The Hollow</em>. Variants are sizes (XS–4XL).</li>
+    <li><strong>Family collection:</strong> all colorways of one style, e.g. <code>western-yoke</code>, <code>the-original-pearl-snap-polo</code>, <code>vintage-collection</code>.</li>
+    <li><strong>Siblings:</strong> the other products shown as color swatches on the product page. They come from the collection the shopper is browsing, or from the product's metafields.</li>
+  </ul>
+
+  <h2>Checklist for a new product</h2>
+  <ol class="steps">
+    <li>Create the product with a <strong>Size</strong> option (the option must be named <em>Size</em> for size carry-over and the size chart link).</li>
+    <li>Add photos. The <strong>first image</strong> is the card image; the <strong>second</strong> is the hover image.</li>
+    <li>Pick the <strong>Theme template</strong> (polos use the default; see <a href="#sitemap">Sitemap</a>).</li>
+    <li>Add it to its <strong>family collection</strong> and any merchandising collections (best-sellers, new arrivals…).</li>
+    <li>Set metafields: <code>custom.sibling_collection</code>, <code>custom.parent_collection</code>, and <code>custom.print</code> (swatch image). See <a href="#metafields">Metafields</a>.</li>
+    <li>Set the product category and Color so filters and swatches pick it up. See <a href="#filters">Filters</a>.</li>
+    <li>Check the product page: swatches, breadcrumb, size chart link, reviews badge.</li>
+  </ol>
+  <div class="callout warn"><span class="t">Developer needed</span>The PDP feature callout photos are mapped per product handle in <span class="path">snippets/io-polo-callout-photo.liquid</span>. A new product shows the section's default images until a developer adds it to that map.</div>
+</article>
+
+<article class="doc" id="metafields" data-group="Catalog">
+  <h1>Metafields</h1>
+  <p class="lede">Every metafield the theme reads, what type it should be and what breaks without it. Manage definitions in <span class="ui">Settings → Custom data</span>.</p>
+
+  <h2>Reference</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Owner</th><th>Namespace.key</th><th>Type</th><th>Used by</th></tr></thead>
+    <tbody>
+      <tr><td>Product</td><td><code>custom.sibling_collection</code></td><td>Collection reference</td><td>Sibling swatches (first source when no collection context). "N colors" count on product cards.</td></tr>
+      <tr><td>Product</td><td><code>custom.parent_collection</code></td><td>Collection reference</td><td>Sibling swatches (second source). Fallback for the color count. Picks the family on <code>/collections/polos</code>.</td></tr>
+      <tr><td>Product</td><td><code>custom.print</code></td><td>File (image)</td><td>This product's swatch image. Falls back to the featured image.</td></tr>
+      <tr><td>Product</td><td><code>reviews.rating</code></td><td>Rating</td><td>Star rating on cards. Written by Judge.me.</td></tr>
+      <tr><td>Product</td><td><code>reviews.rating_count</code></td><td>Integer</td><td>Review count on cards. Written by Judge.me.</td></tr>
+      <tr><td>Product</td><td><code>shopify.disclosure</code></td><td>Shopify product disclosures</td><td>Disclosures block on the PDP and the cart tooltip.</td></tr>
+      <tr><td>Collection</td><td><code>custom.description_more</code></td><td>Rich text</td><td>"Read more +" expander under the collection description.</td></tr>
+      <tr><td>Page</td><td><code>custom.size_chart</code></td><td>Metaobject reference (Size chart)</td><td>The size chart page content. See <a href="#metaobjects">Metaobjects</a>.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout"><span class="t">Note</span>Types listed are what the theme expects to read. If a definition in Custom data has a different type, the value will not show. The <code>reviews.*</code> fields are maintained by Judge.me; do not edit them by hand.</div>
+
+  <h2>Product: sibling_collection &amp; parent_collection</h2>
+  <p>These tell the product page which products are its colors when the shopper did not arrive from a collection.</p>
+  <ul>
+    <li>Set <strong>sibling_collection</strong> to the product's family, e.g. <em>Western Yoke</em>.</li>
+    <li>Set <strong>parent_collection</strong> to a broader collection whose products should also appear, or the same family. The theme de-duplicates.</li>
+    <li>The product card "N colors" label counts <code>sibling_collection</code> (or <code>parent_collection</code> if empty) products.</li>
+  </ul>
+
+  <h2>Product: print</h2>
+  <p>A close-up image of the fabric. It becomes the round/square swatch on sibling swatches. Without it, the swatch uses the product's featured image, which usually looks worse at swatch size. A product with neither image is skipped.</p>
+
+  <h2>Collection: description_more</h2>
+  <p>Long copy for SEO or story that should not push the grid down. The collection description shows first; this field sits in a collapsed <em>Read more +</em> below it.</p>
+
+  <h2>Add or edit a metafield value</h2>
+  <ol class="steps">
+    <li>Open the product, collection or page in admin.</li>
+    <li>Scroll to <strong>Metafields</strong> at the bottom and click the field.</li>
+    <li>Pick the collection / upload the image / choose the entry, then <span class="ui">Save</span>.</li>
+  </ol>
+  <div class="callout tip"><span class="t">Bulk edit</span>Select many products, click <span class="ui">Bulk edit</span>, then add the metafield columns to set <code>sibling_collection</code> for a whole family at once.</div>
+
+  <h2>Show a metafield on the page</h2>
+  <p>Any text block can show a metafield: click <span class="ui">Connect dynamic source</span> and pick it. To show one on every product, edit the product template once (e.g. the PDP <em>Eyebrow</em> block).</p>
+</article>
+
+<article class="doc" id="metaobjects" data-group="Catalog">
+  <h1>Metaobjects</h1>
+  <p class="lede">Metaobjects are reusable content entries. The theme uses one: <strong>Size chart</strong>, which fills the size chart page.</p>
+
+  <h2>Size chart metaobject</h2>
+  <p>Manage entries in <span class="ui">Content → Metaobjects → Size chart</span>. The page links to an entry through the page metafield <code>custom.size_chart</code>.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Field key</th><th>Type</th><th>Format</th></tr></thead>
+    <tbody>
+      <tr><td><code>intro</code></td><td>Multi-line text</td><td>Intro paragraph in the hero.</td></tr>
+      <tr><td><code>highlights</code></td><td>Multi-line text</td><td>One chip per line, e.g. <em>True to size</em>.</td></tr>
+      <tr><td><code>rows</code></td><td>Multi-line text</td><td>One size per line: <code>Size | Length | Chest | Sleeve | Avg weight</code>. Inches. Weight is optional.</td></tr>
+      <tr><td><code>faqs</code></td><td>Multi-line text</td><td>One question per line: <code>Question | Answer</code>.</td></tr>
+      <tr><td><code>hide_model_photo</code></td><td>True or false</td><td>Hides the model photo in the hero.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Example rows</h3>
+  <div class="codeblock"><pre><code>XS | 26 3/4 | 38-39 | 9 1/4 | 125-150
+S | 27 3/4 | 40-41 | 9 1/2 | 155-170
+M | 28 3/4 | 41-42 | 9 3/4 | 170-185
+L | 29 3/4 | 44-45 | 10 | 190-220</code></pre></div>
+  <ul>
+    <li>Fractions like <code>3/4</code> display as ¾. Hyphens in ranges become en dashes.</li>
+    <li>The IN/CM toggle converts from these inch values.</li>
+    <li>If <strong>any</strong> row has a weight, the <em>Find my size</em> form (weight, height, fit preference) appears and the table shows an Avg. weight column.</li>
+  </ul>
+
+  <h2>Build a size chart page for another product type</h2>
+  <ol class="steps">
+    <li>Create a new <strong>Size chart</strong> entry, e.g. <em>Hoodies</em>, and fill the fields.</li>
+    <li>Create a page, e.g. <em>Hoodie size chart</em>, with template <code>page.size-chart</code>.</li>
+    <li>On the page, set metafield <code>custom.size_chart</code> to the new entry.</li>
+    <li>On the product template, in <span class="ui">Variant picker → Size chart → Page</span>, choose the new page. The link opens the chart in a dialog.</li>
+  </ol>
+  <div class="callout"><span class="t">Fallback</span>If the page has no entry linked, it shows the built-in adult polo chart and FAQs, so the page is never empty.</div>
+</article>
+
+<article class="doc" id="swatches" data-group="Catalog">
+  <h1>Swatches</h1>
+  <p class="lede">Three kinds of swatches appear on the site. Sibling swatches are custom to Iron Oak; the other two are standard Shopify.</p>
+
+  <div class="table-wrap"><table>
+    <thead><tr><th>Kind</th><th>Where</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr><td>Sibling swatches</td><td>Product page, above sizes</td><td>Other products (colors) in the collection or metafields</td></tr>
+      <tr><td>Option swatches</td><td>Product page, for products with a color option</td><td>Shopify option value swatches</td></tr>
+      <tr><td>Filter swatches</td><td>Collection filter rail</td><td>Color values from Search &amp; Discovery</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Sibling swatches</h2>
+  <p>Because each color is its own product, the variant picker shows the other color products as image swatches. Clicking one goes to that product.</p>
+  <h3>Where the siblings come from</h3>
+  <ol class="steps">
+    <li><strong>From a collection</strong> (URL has <code>/collections/…/products/…</code>): show that collection's products, up to 24, and keep the collection in each link.</li>
+    <li><strong>From <code>/collections/polos</code></strong>: that collection is the whole catalog, so the theme swaps it for <code>best-sellers</code> if the product is in it. If not, it uses <code>parent_collection</code> when that is a family collection, otherwise the first family collection the product belongs to.</li>
+    <li><strong>No collection</strong> (search, email, direct link): products from <code>sibling_collection</code>, then <code>parent_collection</code>, up to 50 each, without duplicates.</li>
+  </ol>
+  <p>Family collections recognized on the polos special case:</p>
+  <div class="codeblock"><pre><code>the-original-pearl-snap-polo, western-yoke, vintage-collection,
+oak-washed-denim-collection, refined-plaid-collection,
+signature-solids-collection, the-heritage-collection, the-buckaroo-collection</code></pre></div>
+  <div class="callout warn"><span class="t">Developer needed</span>This list lives in <span class="path">snippets/variant-main-picker.liquid</span>. A new polo family needs to be added there to work from <code>/collections/polos</code>.</div>
+
+  <h3>Rules</h3>
+  <ul>
+    <li>Swatch image: <code>custom.print</code>, else the featured image. Products with neither are skipped.</li>
+    <li>The row only shows when there are at least 2 siblings.</li>
+    <li><strong>Size carry-over:</strong> if a size is selected, each swatch link includes that size's variant on the sibling product, so switching color keeps the size.</li>
+    <li>The current product's swatch is marked selected.</li>
+  </ul>
+  <h3>Block settings</h3>
+  <p>In <span class="ui">Product information → Variant picker</span>:</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Setting</th><th>Current</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td>Show sibling swatches</td><td>On</td><td>Turns the row on.</td></tr>
+      <tr><td>Label</td><td><em>Pattern</em></td><td>Legend text and screen reader label.</td></tr>
+      <tr><td>Show label</td><td>On</td><td>Shows label, current product name and count above swatches.</td></tr>
+      <tr><td>Count suffix</td><td>blank</td><td>E.g. <em>colors</em> to show "12 colors". Blank hides the count.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Option swatches</h2>
+  <p>For products that do have a Color option, Shopify shows swatches when the option values are linked to the category's Color metafield (which has a color or image per value). Edit swatch colors in <span class="ui">Content → Metaobjects → Color</span> (Shopify's standard color entries). The variant picker's <strong>Show swatches</strong> setting turns them on.</p>
+
+  <h2>Size chart and fit advisor links</h2>
+  <p>On the option named in <strong>Show on option</strong> (<em>Size</em>), the picker adds:</p>
+  <ul>
+    <li><strong>Size chart</strong> link that opens the chosen page in a dialog (label and color set in the block).</li>
+    <li><strong>Find my size</strong> link for WAIR, shown only once the WAIR app embed has loaded its launcher (<code>io-fit-advisor.js</code>).</li>
+  </ul>
+
+  <h2>Styling rule</h2>
+  <p>Color swatches are squares sized by theme settings (<span class="ui">Theme settings → Swatches</span>) and are all the same size. Size buttons match the Add to cart height. See <a href="#dev-rules">Developer rules</a>.</p>
+</article>
+
+<article class="doc" id="filters" data-group="Catalog">
+  <h1>Filters &amp; sorting</h1>
+  <p class="lede">Which filters exist is managed in Shopify's Search &amp; Discovery app. How they look is set in the Filters block on collection templates.</p>
+
+  <h2>Add or change a filter</h2>
+  <ol class="steps">
+    <li>Open <span class="ui">Apps → Search &amp; Discovery → Filters</span>.</li>
+    <li>Click <span class="ui">Add filter</span> and choose a source: availability, price, product type, vendor, tag, variant option (Size), or a category metafield (Color, Fabric…).</li>
+    <li>Drag to reorder and save. The rail updates on every collection.</li>
+  </ol>
+  <p>Color filters show as swatches when they come from the Color category metafield, because those values have a color or image attached.</p>
+
+  <h2>Filters block settings</h2>
+  <p>In <span class="ui">Collection → Product grid → Filters</span>:</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Setting</th><th>Current</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td>Filter style</td><td>Vertical</td><td>Left rail on desktop, drawer on mobile.</td></tr>
+      <tr><td>Option style</td><td>Chips</td><td>Text values (sizes, types) show as wrapping chips. Swatch, image and on/off filters keep their own style.</td></tr>
+      <tr><td>Show swatch label</td><td>On</td><td>Color name beside each swatch.</td></tr>
+      <tr><td>Hidden filter values</td><td><code>Multicolor</code></td><td>Comma-separated values removed from every filter. Not case-sensitive. A value already selected stays visible so it can be cleared.</td></tr>
+      <tr><td>Hide rail toggle</td><td>On</td><td>Lets shoppers collapse the filter rail. The grid then uses <em>Desktop columns, filters hidden</em>.</td></tr>
+      <tr><td>Filter note</td><td>"Can't find what you want? Ask our chat."</td><td>Line under the filters.</td></tr>
+      <tr><td>Filter note opens chat</td><td>—</td><td>Clicking the note opens Slide chat. On mobile it closes the filter drawer first.</td></tr>
+      <tr><td>Sorting</td><td>On</td><td>Sort dropdown in the toolbar.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Product grid settings</h2>
+  <p>In <span class="ui">Collection → Product grid</span> (section settings):</p>
+  <ul>
+    <li><strong>Desktop columns</strong> (4) and <strong>Desktop columns from screen width</strong> (1500px): below that width the grid shows 3 columns.</li>
+    <li><strong>Minimum card width</strong> (200px): steps down 4 → 3 → 2 columns instead of shrinking cards.</li>
+    <li><strong>Callout tile:</strong> an image tile inside the grid after product N (4 on desktop, 2 on mobile) with eyebrow, heading, text (and mobile text) and tags. Currently "The collar that started it all".</li>
+  </ul>
+
+  <h2>Troubleshooting filters</h2>
+  <ul>
+    <li><strong>A value is missing:</strong> check Hidden filter values, then that products actually have that value set.</li>
+    <li><strong>A filter shows on some collections only:</strong> filters with no values in a collection are hidden automatically.</li>
+    <li><strong>Swatch shows grey:</strong> the Color entry has no color or image set.</li>
+  </ul>
+</article>
+
+<article class="doc" id="collections" data-group="Catalog">
+  <h1>Collection pages</h1>
+  <p class="lede">The collection banner, trust bar, intro and grid, and the Shop all page.</p>
+
+  <h2>Collection banner</h2>
+  <p>A Hero section with a content group: breadcrumb, title (<code>{{ closest.collection.title }}</code>), count (<code>[collection_count] STYLES</code>) and description. The background image is set in the section; for a per-collection image, use a separate template.</p>
+
+  <h2>Collection content in admin</h2>
+  <ul>
+    <li><strong>Title and description:</strong> shown in the banner.</li>
+    <li><strong>Read more:</strong> metafield <code>custom.description_more</code>.</li>
+    <li><strong>Image:</strong> used by collection lists, the mega menu feature cards and SEO previews.</li>
+    <li><strong>Theme template:</strong> pick an alternate if needed.</li>
+  </ul>
+
+  <h2>Shop all</h2>
+  <p>Template <code>collection.shop-all-template</code>. A <em>Jump to collection</em> bar links to product lists below with anchor IDs like <code>#col-western-yoke</code>. To add a family:</p>
+  <ol class="steps">
+    <li>Duplicate one of the product list sections and pick the new collection.</li>
+    <li>Set a unique <strong>Anchor ID</strong>, e.g. <code>col-new-family</code>.</li>
+    <li>Add a link to <code>#col-new-family</code> in the Jump to collection bar.</li>
+  </ol>
+</article>
+
+<article class="doc" id="product-pages" data-group="Catalog">
+  <h1>Product pages</h1>
+  <p class="lede">The product information section and the sections under it.</p>
+
+  <h2>Product information section</h2>
+  <ul>
+    <li><strong>Media gallery:</strong> carousel with a counter bottom-left and next arrow bottom-right, 2:3 photos.</li>
+    <li><strong>Fixed details width</strong> (350px) keeps the right column steady; <strong>Divider between media and details</strong> draws a line.</li>
+    <li><strong>Extra blocks position:</strong> blocks under the media (the "Made to be different" features) stay beside the details on desktop.</li>
+    <li><strong>Sticky add to cart:</strong> on.</li>
+  </ul>
+
+  <h2>Details column, top to bottom</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Block</th><th>Content</th></tr></thead>
+    <tbody>
+      <tr><td>Breadcrumb</td><td>See <a href="#breadcrumbs">Breadcrumbs</a>.</td></tr>
+      <tr><td>Header</td><td>Eyebrow (connect a metafield), title, price and Judge.me star badge.</td></tr>
+      <tr><td>Stock badge</td><td>Inventory block (green when in stock).</td></tr>
+      <tr><td>Variant picker</td><td>Sibling swatches, sizes, size chart and fit links. See <a href="#swatches">Swatches</a>.</td></tr>
+      <tr><td>Trust drawer</td><td>Accordion with exchanges, shipping and same-day text.</td></tr>
+      <tr><td>Buy buttons</td><td>Quantity, Add to cart, Shop Pay. <strong>Show quantity</strong> and <strong>Show dynamic checkout</strong> can be turned off.</td></tr>
+      <tr><td>Gift this item</td><td>Gifted app block.</td></tr>
+      <tr><td>Description</td><td><code>{{ closest.product.description }}</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Feature callouts</h2>
+  <p>Media with content sections under the product (e.g. <em>Made to be different</em>). The media block has a <strong>Product callout photo</strong> slot: on products listed in <span class="path">snippets/io-polo-callout-photo.liquid</span> it shows that product's own photo, otherwise the image set in the editor. A <strong>Second image</strong> turns the media into a swipeable slider.</p>
+
+  <h2>Reviews &amp; recommendations</h2>
+  <ul>
+    <li><strong>Reviews:</strong> Judge.me review widget app block in a Section.</li>
+    <li><strong>Shop Our Best Sellers:</strong> a Product list from a fixed collection, so it shows real product rows.</li>
+  </ul>
+</article>
+
+<article class="doc" id="product-cards" data-group="Catalog">
+  <h1>Product cards</h1>
+  <p class="lede">Cards in grids and product lists share one block structure: gallery, title and price, rating.</p>
+
+  <div class="table-wrap"><table>
+    <thead><tr><th>Part</th><th>Behavior</th><th>Setting</th></tr></thead>
+    <tbody>
+      <tr><td>Gallery</td><td>First image, second on hover (or swapped with <em>Second image as default</em>).</td><td>Product card gallery block; Theme settings → Product cards</td></tr>
+      <tr><td>Link</td><td>Keeps the list's collection in the URL so the PDP breadcrumb and swatches know the context.</td><td>Automatic</td></tr>
+      <tr><td>Title</td><td>League Gothic. <strong>Shrink to fit card</strong> scales long titles down to fit beside the price.</td><td>Product title block</td></tr>
+      <tr><td>Rating</td><td>Stars from Judge.me metafields, plus optional rating value, size range ("XS–4XL") and color count ("12 colors").</td><td>Review block</td></tr>
+      <tr><td>Quick add</td><td>Size picker on the card.</td><td>Product list / grid settings</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout"><span class="t">Note</span>The color count reads <code>custom.sibling_collection</code>. If it shows the wrong number, check that metafield and the collection's products.</div>
+</article>
+
+<!-- ======================= APPS ======================= -->
+
+<article class="doc" id="apps" data-group="Apps &amp; integrations">
+  <h1>Apps &amp; integrations</h1>
+  <p class="lede">Third-party apps connect through app embeds (site-wide, in <span class="ui">Theme settings → App embeds</span>) or app blocks (placed in a template). Settings and API keys live in each app's own admin, not in the theme.</p>
+
+  <h2>Active apps</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>App</th><th>Purpose</th><th>Where in theme</th></tr></thead>
+    <tbody>
+      <tr><td>Judge.me</td><td>Reviews, star badges, home carousel</td><td>Embed + blocks on product templates, home, golf page</td></tr>
+      <tr><td>Klaviyo</td><td>Email/SMS marketing, sign-up form</td><td>Embed + form block on Email sign-up page</td></tr>
+      <tr><td>Alia</td><td>Email/SMS capture popup</td><td>Embed (styled by <em>Match Alia popup to theme</em>)</td></tr>
+      <tr><td>Slide</td><td>Cart drawer, AI chat, product quiz</td><td>Three embeds</td></tr>
+      <tr><td>Ryzo</td><td>Site search</td><td>Two embeds; header search opens it</td></tr>
+      <tr><td>WAIR</td><td>Size and fit recommendation</td><td>Embed; "Find my size" link in the variant picker</td></tr>
+      <tr><td>Gifted</td><td>Gift messages</td><td>"Gift this item" block on product templates</td></tr>
+      <tr><td>Instafeed</td><td>Instagram grid</td><td>Block on home page</td></tr>
+      <tr><td>Collabs</td><td>Creator applications</td><td>Block on Collabs page</td></tr>
+      <tr><td>Stoq</td><td>Back in stock / preorder</td><td>Embed</td></tr>
+      <tr><td>Yoast SEO</td><td>Meta tags and schema</td><td>Embed</td></tr>
+      <tr><td>Lucky Orange, Microsoft Clarity</td><td>Heatmaps and session replay</td><td>Embeds</td></tr>
+      <tr><td>Blockify</td><td>Fraud filter</td><td>Embed</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Installed but turned off</h2>
+  <p>Zoorix sticky add to cart (the theme has its own), Shopify Inbox chat (replaced by Slide), Essential Upsell. Leave them off unless replacing a current app, or two widgets will compete.</p>
+
+  <h2>Changing an app</h2>
+  <ul>
+    <li><strong>Keys and credentials</strong> are handled by the app when installed. The theme stores none. To reconnect, open the app from <span class="ui">Apps</span>.</li>
+    <li><strong>Removing an app:</strong> turn off its embed and delete its blocks first, then uninstall. Leftover blocks show an "app not found" placeholder in the editor.</li>
+    <li><strong>Payments, shipping, taxes</strong> are Shopify settings, not theme features.</li>
+  </ul>
+</article>
+
+<article class="doc" id="search-chat" data-group="Apps &amp; integrations">
+  <h1>Search &amp; chat</h1>
+  <p class="lede">The header search icon and the "chat" links hand off to apps.</p>
+
+  <h2>Header search</h2>
+  <p>In <span class="ui">Header → Search</span>:</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Setting</th><th>Current</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td>Search opens</td><td>App search</td><td>The icon opens Ryzo instead of the theme's search. Switch to <em>Theme search</em> to use Shopify's predictive search again.</td></tr>
+      <tr><td>App search trigger</td><td><code>.ryzo-text-search-button</code></td><td>The app's own button the icon clicks. If it is not on the page (app off), the icon goes to <code>/search</code>.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Chat links</h2>
+  <p>Any link whose URL ends in <code>#chat</code> opens the chat widget. Use it in text, buttons or menus:</p>
+  <div class="codeblock"><pre><code>&lt;a href="#chat"&gt;Ask our team&lt;/a&gt;</code></pre></div>
+  <p><code>io-chat-links.js</code> opens Slide chat first, then Shopify Inbox or Gorgias if those are ever installed. Inside a drawer, it closes the drawer first so the chat is visible.</p>
+</article>
+
+<!-- ======================= MAINTENANCE ======================= -->
+
+<article class="doc" id="seo" data-group="Maintenance">
+  <h1>SEO &amp; content best practices</h1>
+  <p class="lede">What the theme does automatically, and what to do when adding content.</p>
+
+  <h2>Handled by the theme and apps</h2>
+  <ul>
+    <li>Collections and pages without their own SEO description get a generated one (e.g. "Shop Western Yoke at Iron Oak…"), so no page goes out with a blank description.</li>
+    <li>Open Graph / social tags and structured data (product, organization). Yoast SEO adds its own meta tags.</li>
+    <li>Canonical URLs on products point to <code>/products/…</code> even when browsed inside a collection.</li>
+    <li>Responsive images with lazy loading; hero media loads first.</li>
+  </ul>
+
+  <h2>When adding content</h2>
+  <ul>
+    <li>Write a unique <strong>SEO title</strong> (under 60 characters) and <strong>description</strong> (under 155) in each product, collection and page's <em>Search engine listing</em>.</li>
+    <li>Add <strong>alt text</strong> to every image (describe the shirt, color and setting).</li>
+    <li>Keep one H1 per page. The product and collection title already are the H1; use H2–H3 in descriptions.</li>
+    <li>When changing a handle, keep <span class="ui">Create a URL redirect</span> checked.</li>
+    <li>Compress images before upload; aim for under 500 KB. Use .mp4 for hero videos and add a poster image.</li>
+  </ul>
+
+  <h2>Accessibility</h2>
+  <p>Accessibility issues found by axe and Lighthouse were fixed before launch. To keep it that way, use real headings, write link text that makes sense alone ("Shop Western Yoke", not "Click here"), and keep text contrast on images readable.</p>
+</article>
+
+<article class="doc" id="users" data-group="Maintenance">
+  <h1>Users &amp; permissions</h1>
+  <p class="lede">Staff access is managed in Shopify, not in the theme.</p>
+
+  <h2>Manage staff</h2>
+  <ol class="steps">
+    <li>Go to <span class="ui">Settings → Users</span>.</li>
+    <li><strong>Add:</strong> <span class="ui">Add users</span>, enter the email and choose permissions.</li>
+    <li><strong>Edit:</strong> click the user and change permissions.</li>
+    <li><strong>Remove:</strong> open the user and <span class="ui">Remove user</span>. Do this the same day someone leaves.</li>
+  </ol>
+
+  <h2>Suggested roles</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Role</th><th>Permissions</th></tr></thead>
+    <tbody>
+      <tr><td>Owner</td><td>Everything, including billing. One person.</td></tr>
+      <tr><td>Merchandiser</td><td>Products, collections, Online Store (themes, pages, navigation), metaobjects.</td></tr>
+      <tr><td>Customer service</td><td>Orders, customers, Inbox/Slide chat. No themes.</td></tr>
+      <tr><td>Marketing</td><td>Marketing, discounts, apps they own (Klaviyo, Alia).</td></tr>
+      <tr><td>Agency (Nine15)</td><td>Collaborator account with Themes and Apps. Request access through the collaborator code.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Security</h2>
+  <ul>
+    <li>Require two-step authentication for every user.</li>
+    <li>Give the least access each person needs; Themes access lets someone change the live site.</li>
+    <li>Use collaborator accounts for agencies and freelancers instead of shared logins.</li>
+    <li>Review the user list and installed apps every quarter.</li>
+  </ul>
+</article>
+
+<article class="doc" id="troubleshooting" data-group="Maintenance">
+  <h1>Troubleshooting</h1>
+  <p class="lede">Common issues, what causes them and how to fix them.</p>
+
+  <h2>Product pages</h2>
+  <h3>Color swatches are missing</h3>
+  <ul>
+    <li>Fewer than 2 siblings were found. Check the product is in its family collection and <code>custom.sibling_collection</code> is set.</li>
+    <li>Sibling products have no <code>custom.print</code> image and no featured image.</li>
+    <li><strong>Show sibling swatches</strong> is off in that template's variant picker.</li>
+  </ul>
+  <h3>Swatches show the wrong products</h3>
+  <p>The shopper came from a broad collection, so its products show (up to 24). This is expected. From <code>/collections/polos</code> the theme uses best-sellers or the family instead.</p>
+  <h3>Breadcrumb says "Shop" instead of the collection</h3>
+  <p>The shopper did not arrive through a collection URL (search, email, ad). Expected behavior.</p>
+  <h3>Size chart link is missing</h3>
+  <p>The variant picker has no <strong>Size chart → Page</strong> chosen, or the option is not named <em>Size</em>.</p>
+  <h3>Find my size link is missing</h3>
+  <p>The WAIR app embed is off, or WAIR has no profile for this product.</p>
+  <h3>Callout photo shows another product's image</h3>
+  <p>The product is not in the callout photo map. Ask a developer to add it.</p>
+
+  <h2>Collections</h2>
+  <h3>A filter value is missing</h3>
+  <p>Check <strong>Hidden filter values</strong>, then the filter in Search &amp; Discovery.</p>
+  <h3>Product count shows "[collection_count]"</h3>
+  <p>The token was used outside a collection page. It only works there.</p>
+
+  <h2>Editor &amp; deployment</h2>
+  <h3>My editor change disappeared</h3>
+  <p>A developer pushed an older version of the template to GitHub. Find your change in the GitHub history ("Update from Shopify" commit) and restore it.</p>
+  <h3>Spacing setting does nothing</h3>
+  <p>Check both desktop and mobile padding values. If it still does nothing, custom CSS is overriding it; ask a developer.</p>
+  <h3>Block says "app not found"</h3>
+  <p>The app was uninstalled or its embed is off. Remove the block or re-enable the app.</p>
+
+  <h2>Site-wide</h2>
+  <h3>Headings show in the wrong font</h3>
+  <p>The Adobe Fonts kit is not loading. Check the kit's domain list includes the store domain.</p>
+  <h3>Chat link does nothing</h3>
+  <p>The Slide AI chat embed is off or still loading.</p>
+  <h3>Store shows Closed during open hours</h3>
+  <p>The hours line is not in the expected format (<code>Wed – Thu: 11:00am – 7:00pm</code>). Status uses Central Time.</p>
+  <h3>Page is slow</h3>
+  <p>Check image sizes first, then recently installed apps. Each app embed adds script. Use Lighthouse or <span class="ui">Analytics → Web performance</span>.</p>
+</article>
+
+<article class="doc" id="dev-rules" data-group="Maintenance">
+  <h1>Developer rules</h1>
+  <p class="lede">Conventions for anyone changing the theme code. They keep the site editable and upgradeable.</p>
+
+  <h2>1. Horizon sections first</h2>
+  <p>Build pages from existing sections, groups and theme blocks in JSON templates. Do not create new sections to match a design. If a section is close but missing a control, extend its schema.</p>
+  <div class="codeblock"><pre><code>// ❌ new custom section
+"type": "io-brand-ethos"
+
+// ✅ Horizon section + groups + theme blocks
+"type": "section",
+"blocks": { "group_1": { "type": "group", ... } }</code></pre></div>
+
+  <h2>2. Settings over CSS</h2>
+  <p>Every section has desktop and mobile padding settings wired through <code>spacing-style</code>. Do not set padding, margin, gap, max-width or flex-direction in CSS. When CSS is unavoidable, add a <strong>Custom class</strong> to a group and scope the CSS to it.</p>
+  <div class="codeblock"><pre><code>/* ✅ scoped to the group hook */
+.io-reviews-row .group-block-content { ... }
+
+/* ❌ fights settings */
+.section-wrapper, .hero { padding: 0; }</code></pre></div>
+
+  <h2>3. Match button heights</h2>
+  <p><code>.button</code>, secondary buttons, Shop Pay, Add to cart, the quantity selector and text size pills must all be the same height. Change sizing only through the button tokens from Theme settings (<code>--button-padding-block</code>, <code>--button-font-size</code>…) and keep <code>--height-buy-buttons</code> equal to the computed button height. Color swatches stay squares and are not stretched.</p>
+
+  <h2>4. Old theme is reference only</h2>
+  <p>The previous live theme is kept for behavior reference (apps, size charts, swatches). Do not copy its Liquid or CSS into this theme.</p>
+
+  <h2>When to call a developer</h2>
+  <ul>
+    <li>A new section type or a layout settings cannot reach.</li>
+    <li>Adding a polo family to the swatch logic or a product to the callout photo map.</li>
+    <li>Changing chat hours, store timezone or contact page behavior.</li>
+    <li>Upgrading Horizon to a new version (custom changes must be merged by hand).</li>
+    <li>Replacing an app that the theme hooks into (Slide, Ryzo, WAIR, Judge.me).</li>
+  </ul>
+</article>
+
+<article class="doc" id="maintenance" data-group="Maintenance">
+  <h1>Routine maintenance</h1>
+  <p class="lede">A light checklist to keep the store healthy after launch.</p>
+
+  <h2>Monthly</h2>
+  <ul>
+    <li>Click through home, a collection, a product, cart and checkout on phone and desktop.</li>
+    <li>Check <span class="ui">Online Store → Themes</span> for app notices and review new app updates.</li>
+    <li>Look for broken links in menus and the mega menu feature cards after products or collections are removed.</li>
+    <li>Check the Judge.me, Klaviyo and Slide dashboards for errors.</li>
+  </ul>
+  <h2>Quarterly</h2>
+  <ul>
+    <li>Duplicate the live theme as a dated backup.</li>
+    <li>Run Lighthouse on home, collection and product pages.</li>
+    <li>Review staff accounts and remove unused apps.</li>
+    <li>Confirm the Adobe Fonts kit and domain are active.</li>
+  </ul>
+  <h2>Before a campaign</h2>
+  <ul>
+    <li>Build new landing pages on a duplicated template, preview, then publish.</li>
+    <li>Update the announcement bar, hero slides and mega menu feature cards.</li>
+    <li>Check store location hours and holiday notes.</li>
+  </ul>
+</article>
+
+  </main>
+
+  <aside class="toc" id="toc" aria-label="On this page"></aside>
+</div>
+
+<dialog class="search-dialog" id="search-dialog" aria-label="Search documentation">
+  <div class="search-head">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="search-input" type="search" placeholder="Search metafields, swatches, filters…" autocomplete="off" aria-controls="search-results">
+    <kbd>Esc</kbd>
+  </div>
+  <ul class="results" id="search-results" role="listbox"></ul>
+  <div class="search-foot"><span><kbd>↑</kbd> <kbd>↓</kbd> to move</span><span><kbd>↵</kbd> to open</span></div>
+</dialog>
+
+<script>
+(() => {
+  const docs = [...document.querySelectorAll('article.doc')];
+  const nav = document.getElementById('sidenav');
+  const toc = document.getElementById('toc');
+  const slug = (s) => s.toLowerCase().replace(/&amp;|&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+  // Heading ids, anchors and copy buttons
+  docs.forEach((doc) => {
+    const used = new Set();
+    doc.querySelectorAll('h2, h3').forEach((h) => {
+      let id = doc.id + '.' + slug(h.textContent);
+      while (used.has(id)) id += '-2';
+      used.add(id);
+      h.id = id;
+      const a = document.createElement('a');
+      a.className = 'anchor'; a.href = '#' + id; a.textContent = '#'; a.setAttribute('aria-label', 'Link to this section');
+      h.append(a);
+    });
+    const crumb = document.createElement('div');
+    crumb.className = 'crumbs';
+    crumb.textContent = doc.dataset.group.replace('&amp;', '&');
+    doc.prepend(crumb);
+  });
+  document.querySelectorAll('pre').forEach((pre) => {
+    const wrap = pre.parentElement.classList.contains('codeblock') ? pre.parentElement : null;
+    if (!wrap) return;
+    const btn = document.createElement('button');
+    btn.className = 'copy'; btn.type = 'button'; btn.textContent = 'Copy';
+    btn.addEventListener('click', () => {
+      const text = pre.innerText;
+      const done = () => { btn.textContent = 'Copied'; setTimeout(() => (btn.textContent = 'Copy'), 1400); };
+      navigator.clipboard?.writeText(text).then(done, () => {
+        const r = document.createRange(); r.selectNodeContents(pre);
+        const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+      });
+    });
+    wrap.append(btn);
+  });
+
+  // Sidebar
+  const groups = [];
+  docs.forEach((d) => {
+    let g = groups.find((x) => x.name === d.dataset.group);
+    if (!g) groups.push((g = { name: d.dataset.group, docs: [] }));
+    g.docs.push(d);
+  });
+  nav.innerHTML = groups.map((g) => `<div class="nav-group"><h4>${g.name}</h4>${g.docs
+    .map((d) => `<a href="#${d.id}" data-doc="${d.id}">${d.querySelector('h1').textContent}</a>`).join('')}</div>`).join('');
+
+  // Prev / next
+  docs.forEach((d, i) => {
+    const prev = docs[i - 1], next = docs[i + 1];
+    const pager = document.createElement('nav');
+    pager.className = 'pager';
+    pager.innerHTML =
+      (prev ? `<a class="prev" href="#${prev.id}"><small>Previous</small><span>${prev.querySelector('h1').textContent}</span></a>` : '<span style="flex:1"></span>') +
+      (next ? `<a class="next" href="#${next.id}"><small>Next</small><span>${next.querySelector('h1').textContent}</span></a>` : '');
+    d.append(pager);
+  });
+
+  let current = null;
+  let spy = [];
+
+  function buildToc(doc) {
+    const hs = [...doc.querySelectorAll('h2, h3')];
+    spy = hs;
+    if (!hs.length) { toc.innerHTML = ''; return; }
+    toc.innerHTML = '<h5>On this page</h5><ul>' + hs.map((h) =>
+      `<li class="${h.tagName === 'H3' ? 'sub' : ''}"><a href="#${h.id}" data-target="${h.id}">${h.firstChild.textContent}</a></li>`).join('') + '</ul>';
+    updateSpy();
+  }
+
+  function show(id, headingId, smooth) {
+    const doc = docs.find((d) => d.id === id) || docs[0];
+    if (doc !== current) {
+      docs.forEach((d) => (d.hidden = d !== doc));
+      current = doc;
+      nav.querySelectorAll('a').forEach((a) => {
+        if (a.dataset.doc === doc.id) a.setAttribute('aria-current', 'page');
+        else a.removeAttribute('aria-current');
+      });
+      document.title = doc.querySelector('h1').textContent + ' · Iron Oak Theme Docs';
+      buildToc(doc);
+    }
+    document.body.classList.remove('nav-open');
+    document.getElementById('menu-btn').setAttribute('aria-expanded', 'false');
+    const target = headingId && document.getElementById(headingId);
+    if (target) target.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
+    else window.scrollTo(0, 0);
+  }
+
+  function route(smooth) {
+    const hash = decodeURIComponent(location.hash.slice(1));
+    const [page] = hash.split('.');
+    show(page || 'overview', hash.includes('.') ? hash : null, smooth);
+  }
+
+  function updateSpy() {
+    if (!spy.length) return;
+    let active = spy[0];
+    const line = 90;
+    for (const h of spy) { if (h.getBoundingClientRect().top - line <= 0) active = h; else break; }
+    if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) active = spy[spy.length - 1];
+    toc.querySelectorAll('a').forEach((a) => a.classList.toggle('active', a.dataset.target === active.id));
+  }
+
+  // Internal links: route without relying on hash support in every viewer
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('a[href^="#"]');
+    if (!a || a.getAttribute('href') === '#chat') return;
+    const hash = a.getAttribute('href').slice(1);
+    if (!hash) return;
+    e.preventDefault();
+    try { history.pushState(null, '', '#' + hash); } catch (_) {}
+    const [page] = hash.split('.');
+    show(page, hash.includes('.') ? hash : null, true);
+  });
+  addEventListener('popstate', () => route(false));
+  addEventListener('hashchange', () => route(false));
+  addEventListener('scroll', updateSpy, { passive: true });
+
+  // Mobile nav
+  const menuBtn = document.getElementById('menu-btn');
+  menuBtn.addEventListener('click', () => {
+    const open = document.body.classList.toggle('nav-open');
+    menuBtn.setAttribute('aria-expanded', String(open));
+  });
+
+  // Search index: one entry per page intro and per heading section
+  const index = [];
+  docs.forEach((doc) => {
+    const title = doc.querySelector('h1').textContent;
+    let entry = { doc: doc.id, page: title, heading: title, target: null, text: '' };
+    index.push(entry);
+    for (const el of doc.children) {
+      if (el.matches('.crumbs, .pager, h1')) continue;
+      if (el.matches('h2, h3')) {
+        entry = { doc: doc.id, page: title, heading: el.firstChild.textContent, target: el.id, text: '' };
+        index.push(entry);
+      } else {
+        const cells = el.querySelectorAll('td');
+        const text = cells.length ? [...cells].map((c) => c.textContent).join(' · ') : el.textContent;
+        entry.text += ' ' + text.replace(/\s+/g, ' ');
+      }
+    }
+  });
+
+  const dialog = document.getElementById('search-dialog');
+  const input = document.getElementById('search-input');
+  const results = document.getElementById('search-results');
+  let hits = [], sel = 0;
+  const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const reEsc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  function highlight(text, terms) {
+    let out = esc(text);
+    terms.forEach((t) => { out = out.replace(new RegExp('(' + reEsc(esc(t)) + ')', 'gi'), '<mark>$1</mark>'); });
+    return out;
+  }
+
+  function search(q) {
+    const terms = q.toLowerCase().split(/\s+/).filter(Boolean);
+    if (!terms.length) {
+      hits = docs.slice(0, 8).map((d) => index.find((e) => e.doc === d.id && !e.target));
+    } else {
+      hits = index.map((e) => {
+        const h = e.heading.toLowerCase(), p = e.page.toLowerCase(), t = e.text.toLowerCase();
+        let score = 0;
+        for (const term of terms) {
+          const s = (h.includes(term) ? 10 : 0) + (p.includes(term) ? 4 : 0) + (t.includes(term) ? 2 + Math.min(3, t.split(term).length - 2) : 0);
+          if (!s) return null;
+          score += s;
+        }
+        return { ...e, score };
+      }).filter(Boolean).sort((a, b) => b.score - a.score).slice(0, 20);
+    }
+    sel = 0;
+    render(terms);
+  }
+
+  function snippet(text, terms) {
+    const t = text.trim();
+    if (!terms.length) return t.slice(0, 120) + (t.length > 120 ? '…' : '');
+    const i = Math.max(0, t.toLowerCase().indexOf(terms[0]));
+    const start = Math.max(0, i - 50);
+    return (start ? '…' : '') + t.slice(start, start + 150) + (t.length > start + 150 ? '…' : '');
+  }
+
+  function render(terms) {
+    if (!hits.length) {
+      results.innerHTML = `<li class="empty">No results. Try "swatch", "metafield", "breadcrumb" or "filter".</li>`;
+      return;
+    }
+    results.innerHTML = hits.map((e, i) => `<li><a href="#${e.target || e.doc}" role="option" aria-selected="${i === sel}" data-i="${i}">
+      <span class="rp">${esc(e.page)}</span>
+      <span class="rh">${highlight(e.heading, terms)}</span>
+      <span class="rs">${highlight(snippet(e.text, terms), terms)}</span></a></li>`).join('');
+  }
+
+  function move(d) {
+    if (!hits.length) return;
+    sel = (sel + d + hits.length) % hits.length;
+    results.querySelectorAll('a').forEach((a, i) => a.setAttribute('aria-selected', String(i === sel)));
+    results.querySelectorAll('a')[sel].scrollIntoView({ block: 'nearest' });
+  }
+
+  function openSearch() {
+    if (!dialog.open) dialog.showModal();
+    input.value = ''; search(''); input.focus();
+  }
+  document.getElementById('search-btn').addEventListener('click', openSearch);
+  input.addEventListener('input', () => search(input.value));
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); move(1); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); move(-1); }
+    else if (e.key === 'Enter') { e.preventDefault(); results.querySelectorAll('a')[sel]?.click(); }
+  });
+  results.addEventListener('click', (e) => { if (e.target.closest('a')) dialog.close(); });
+  dialog.addEventListener('click', (e) => { if (e.target === dialog) dialog.close(); });
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openSearch(); }
+    else if (e.key === '/' && !dialog.open && !/input|textarea/i.test(document.activeElement.tagName)) { e.preventDefault(); openSearch(); }
+  });
+
+  route(false);
+})();
+</script>
